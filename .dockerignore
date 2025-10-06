@@ -1,0 +1,58 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Build artifacts
+dist/
+tmp/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Documentation
+*.md
+LICENSE
+README.md
+
+# Swagger generated docs
+docs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Test files
+*_test.go
+testdata/
+
+# Terraform (will be added later)
+terraform/
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Docker
+Dockerfile
+docker-compose.yaml
+.dockerignore
