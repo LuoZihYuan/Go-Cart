@@ -255,7 +255,7 @@ make clean
 ## Project Structure
 
 ```
-project/
+Go-Cart/
 ├── cmd/                           # Application entry point
 │   └── api/
 │       ├── main.go               # Server initialization and Swagger configuration
