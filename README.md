@@ -6,96 +6,48 @@ A RESTful e-commerce API for managing products, shopping carts, and payments, bu
 
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
+  - [Setup](#setup)
   - [Development (Local)](#development-local)
   - [Staging (AWS)](#staging-aws)
   - [Production (AWS)](#production-aws)
+  - [Cleanup](#cleanup)
 - [Project Structure](#project-structure)
 
 ---
 
 ## Prerequisites
 
-### Required
-
 - **Docker Desktop** - For containerized development
 - **Go 1.25.1+** - For local IDE support
-- **AWS CLI** - For AWS deployments (configured with `aws configure`)
-- **Terraform 1.0+** - For infrastructure as code
-
-### Optional
-
-- **VS Code or GoLand** - For IDE features with autocomplete
+- **AWS CLI** - For AWS deployments, configured with `aws configure`
+- **Terraform 1.0+** - For infrastructure as code, run `terraform init` in `terraform/stage` and `terraform/prod`
+- **VS Code or GoLand** (Optional) - For IDE features with autocomplete
 
 ---
 
 ## Getting Started
 
-### Initial Setup
+### Setup
+
+Downloads Go dependencies for IDE autocomplete and navigation features. Run this once after cloning the repository.
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd go-cart
-
-# One-time setup
 make setup
-
-# Start development
-make deploy-dev
 ```
+
+---
 
 ### Development (Local)
 
-Local development runs in Docker with hot-reload enabled.
+#### Deploy
 
-The API is now available at http://localhost:8080 and Swagger UI at http://localhost:8080/swagger/index.html
-
-#### Viewing Logs
+Builds Docker image with Swagger enabled, starts container with Air hot-reload, and mounts source code as volume. When you edit any `.go` file and save, Air automatically detects changes, regenerates Swagger docs, recompiles the binary, and restarts the application (typically 2-5 seconds).
 
 ```bash
-make log-dev
+make deploy-dev
 ```
 
-Shows all container logs with real-time streaming. Ctrl+C to exit (container keeps running).
-
-#### Shell Access
-
-```bash
-make shell-dev
-```
-
-Opens interactive shell inside the running container:
-
-```bash
-/app # ls
-/app # ps aux
-/app # curl http://localhost:8080/v1/products/123
-/app # exit
-```
-
-#### Hot-Reload Workflow
-
-1. Edit any `.go` file and save
-2. Air detects the change automatically
-3. Runs `swag init` to regenerate Swagger docs
-4. Recompiles with `go build --tags dev`
-5. Restarts the application
-6. Check `make log-dev` to see rebuild status
-
-Rebuild time: 2-5 seconds typically
-
-#### Testing the API
-
-**Using Swagger UI:**
-
-1. Open http://localhost:8080/swagger/index.html
-2. Expand "Products" section
-3. Click "Try it out" on any endpoint
-4. Fill in parameters
-5. Click "Execute"
-6. View response (body, status code, headers, cURL command)
-
-**Using cURL:**
+To test the API, open `http://localhost:8080/swagger/index.html` or use `cURL`:
 
 ```bash
 # Add a product
@@ -114,140 +66,53 @@ curl -X POST http://localhost:8080/v1/products/12345/details \
 curl http://localhost:8080/v1/products/12345
 ```
 
-#### Stopping Development
+#### Logs
 
-**Stop container:**
+Shows all container logs with real-time streaming. `Ctrl+C` to exit, container keeps running.
+
+```bash
+make log-dev
+```
+
+#### Shell
+
+Opens interactive shell inside the running container for inspection and debugging. Type `exit` to close.
+
+```bash
+make shell-dev
+```
+
+#### Stop
+
+Stops and removes the development container. Keeps Docker images for faster restart.
 
 ```bash
 make stop-dev
 ```
 
-Stops and removes container, keeps images for faster restart.
+#### Destroy
 
-**Complete cleanup:**
+Removes containers, volumes, and images. Frees disk space.
 
 ```bash
 make destroy-dev
 ```
 
-Removes containers, volumes, and images. Frees disk space.
-
-#### Available Commands
-
-- `make deploy-dev` - Start local development with hot-reload
-- `make log-dev` - View logs (Ctrl+C to exit)
-- `make shell-dev` - Open shell in container
-- `make stop-dev` - Stop container
-- `make destroy-dev` - Destroy Docker environment
-
 ---
 
 ### Staging (AWS)
 
-Staging environment runs on AWS with Swagger enabled for testing.
+#### Deploy
 
-#### Prerequisites
-
-```bash
-# Configure AWS CLI
-aws configure
-
-# Initialize Terraform
-cd terraform/stage
-terraform init
-cd ../..
-```
-
-#### First Deployment
+First deployment creates ECR repository and infrastructure. Subsequent deployments build new image, push to ECR, and update ECS service. Waits for service stability and displays public IP.
 
 ```bash
 make deploy-stage
 ```
 
-**What happens:**
-
-1. Checks if ECR repository exists in AWS
-2. If first time:
-   - Creates ECR repository with Terraform
-   - Builds Docker image for linux/amd64
-   - Pushes image to ECR
-   - Creates infrastructure (VPC, ECS, security groups)
-3. If updating:
-   - Builds new Docker image
-   - Pushes to ECR
-   - Updates ECS service with `force_new_deployment`
-4. Waits for service to become stable
-5. Displays public IP
-
-#### Updating Staging
-
-After code changes:
+To test the API, open `http://<STAGING_IP>:8080/swagger/index.html` or use `cURL`:
 
 ```bash
-make deploy-stage
-```
-
-Rebuilds image, pushes to ECR, and triggers ECS redeployment.
-
-#### Viewing Logs
-
-```bash
-make log-stage
-```
-
-Streams CloudWatch logs in real-time. Ctrl+C to exit, service keeps running.
-
-#### Shell Access
-
-```bash
-make shell-stage
-```
-
-Opens interactive shell in the running ECS task on AWS.
-
-#### Managing the Service
-
-**Stop service (scale to 0):**
-
-```bash
-make stop-stage
-```
-
-Stops all running tasks, infrastructure remains, no compute costs.
-
-**Restart service:**
-
-```bash
-make start-stage
-```
-
-Scales back to 1 task.
-
-**Destroy everything:**
-
-```bash
-make destroy-stage
-```
-
-Requires typing 'yes' to confirm. Deletes ALL AWS resources and removes local Docker images.
-
-#### Testing the API
-
-**Using Swagger UI:**
-
-1. Get staging public IP from deployment output
-2. Open http://<STAGING_IP>:8080/swagger/index.html
-3. Expand "Products" section
-4. Click "Try it out" on any endpoint
-5. Fill in parameters
-6. Click "Execute"
-7. View response
-
-**Using cURL:**
-
-```bash
-# Replace <STAGING_IP> with your actual staging IP
-
 # Add a product
 curl -X POST http://<STAGING_IP>:8080/v1/products/12345/details \
   -H 'Content-Type: application/json' \
@@ -264,105 +129,61 @@ curl -X POST http://<STAGING_IP>:8080/v1/products/12345/details \
 curl http://<STAGING_IP>:8080/v1/products/12345
 ```
 
-#### Available Commands
+#### Logs
 
-- `make deploy-stage` - Deploy to AWS staging
-- `make log-stage` - View CloudWatch logs (Ctrl+C to exit)
-- `make shell-stage` - Open shell in ECS task
-- `make stop-stage` - Scale to 0 tasks
-- `make start-stage` - Scale back to 1 task
-- `make destroy-stage` - Destroy infrastructure (DESTRUCTIVE)
+Streams CloudWatch logs in real-time. `Ctrl+C` to exit, service keeps running.
+
+```bash
+make log-stage
+```
+
+#### Shell
+
+Opens interactive shell in the running ECS task on AWS. Type `exit` to close.
+
+```bash
+make shell-stage
+```
+
+#### Stop
+
+Scales service to 0 tasks. Infrastructure remains, no compute costs.
+
+```bash
+make stop-stage
+```
+
+#### Start
+
+Scales service back to 1 task.
+
+```bash
+make start-stage
+```
+
+#### Destroy
+
+Deletes all AWS staging resources and removes local Docker images. Requires typing `yes` to confirm.
+
+```bash
+make destroy-stage
+```
 
 ---
 
 ### Production (AWS)
 
-Production environment runs on AWS with Swagger disabled and higher resources.
+#### Deploy
 
-#### Prerequisites
-
-```bash
-# Configure AWS CLI (if not already done)
-aws configure
-
-# Initialize Terraform
-cd terraform/prod
-terraform init
-cd ../..
-```
-
-#### First Deployment
+Swagger disabled for security. Separate ECR repository. Waits for service stability and displays public IP.
 
 ```bash
 make deploy-prod
 ```
 
-Same process as staging, but:
-
-- Creates 1 tasks for high availability
-- Larger CPU/memory allocation
-- Swagger disabled in binary
-- Separate ECR repository: `go-cart-prod`
-
-#### Updating Production
+To test the API, use `cURL` (Swagger is disabled in production):
 
 ```bash
-make deploy-prod
-```
-
-Rebuilds, pushes, and triggers rolling deployment across 1 tasks.
-
-#### Viewing Logs
-
-```bash
-make log-prod
-```
-
-Streams CloudWatch logs from production tasks.
-
-#### Shell Access
-
-```bash
-make shell-prod
-```
-
-Opens shell in one of the running production tasks.
-
-#### Managing the Service
-
-**Stop service:**
-
-```bash
-make stop-prod
-```
-
-Scales to 0 tasks, infrastructure remains.
-
-**Restart service:**
-
-```bash
-make start-prod
-```
-
-Scales back to 1 tasks.
-
-**Destroy everything:**
-
-```bash
-make destroy-prod
-```
-
-Complete infrastructure teardown (requires confirmation).
-
-#### Testing the API
-
-Production has Swagger disabled for security. Use cURL for testing.
-
-**Using cURL:**
-
-```bash
-# Replace <PRODUCTION_IP> with your actual production IP
-
 # Add a product
 curl -X POST http://<PRODUCTION_IP>:8080/v1/products/12345/details \
   -H 'Content-Type: application/json' \
@@ -379,14 +200,55 @@ curl -X POST http://<PRODUCTION_IP>:8080/v1/products/12345/details \
 curl http://<PRODUCTION_IP>:8080/v1/products/12345
 ```
 
-#### Available Commands
+#### Logs
 
-- `make deploy-prod` - Deploy to AWS production
-- `make log-prod` - View CloudWatch logs (Ctrl+C to exit)
-- `make shell-prod` - Open shell in ECS task
-- `make stop-prod` - Scale to 0 tasks
-- `make start-prod` - Scale back to 1 tasks
-- `make destroy-prod` - Destroy infrastructure (DESTRUCTIVE)
+Streams CloudWatch logs from production tasks. `Ctrl+C` to exit, service keeps running.
+
+```bash
+make log-prod
+```
+
+#### Shell
+
+Opens interactive shell in one of the running production tasks. Type `exit` to close.
+
+```bash
+make shell-prod
+```
+
+#### Stop
+
+Scales service to 0 tasks. Infrastructure remains.
+
+```bash
+make stop-prod
+```
+
+#### Start
+
+Scales service back to 1 task.
+
+```bash
+make start-prod
+```
+
+#### Destroy
+
+Deletes all AWS production resources and removes local Docker images. Requires typing `yes` to confirm.
+
+```bash
+make destroy-prod
+```
+
+---
+
+### Cleanup
+
+Removes local build artifacts (dist/, tmp/, docs/). Does not affect Docker containers or AWS resources.
+
+```bash
+make clean
+```
 
 ---
 
