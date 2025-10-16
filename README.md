@@ -1,21 +1,21 @@
-# Go-Cart
+# 🛒 Go-Cart 🛒
 
 A RESTful e-commerce API for managing products, shopping carts, and payments, built in Go.
 
-## Table of Contents
+## 📋 Table of Contents
 
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-  - [Setup](#setup)
-  - [Development (Local)](#development-local)
-  - [Staging (AWS)](#staging-aws)
-  - [Production (AWS)](#production-aws)
-  - [Cleanup](#cleanup)
-- [Project Structure](#project-structure)
+- [✅ Prerequisites](#-prerequisites)
+- [🚀 Getting Started](#-getting-started)
+  - [⚙️ Setup](#️-setup)
+  - [💻 Development (Local)](#-development-local)
+  - [🧪 Staging (AWS)](#-staging-aws)
+  - [🏭 Production (AWS)](#-production-aws)
+  - [🧹 Cleanup](#-cleanup)
+- [📁 Project Structure](#-project-structure)
 
 ---
 
-## Prerequisites
+## ✅ Prerequisites
 
 - **Docker Desktop** - For containerized development
 - **Go 1.25.1+** - For local IDE support
@@ -25,9 +25,9 @@ A RESTful e-commerce API for managing products, shopping carts, and payments, bu
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
-### Setup
+### ⚙️ Setup
 
 Downloads Go dependencies for IDE autocomplete and navigation features. Run this once after cloning the repository.
 
@@ -37,7 +37,7 @@ make setup
 
 ---
 
-### Development (Local)
+### 💻 Development (Local)
 
 #### Deploy
 
@@ -100,7 +100,7 @@ make destroy-dev
 
 ---
 
-### Staging (AWS)
+### 🧪 Staging (AWS)
 
 #### Deploy
 
@@ -171,7 +171,7 @@ make destroy-stage
 
 ---
 
-### Production (AWS)
+### 🏭 Production (AWS)
 
 #### Deploy
 
@@ -242,7 +242,7 @@ make destroy-prod
 
 ---
 
-### Cleanup
+### 🧹 Cleanup
 
 Removes local build artifacts (dist/, tmp/, docs/). Does not affect Docker containers or AWS resources.
 
@@ -252,7 +252,7 @@ make clean
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 Go-Cart/
