@@ -1,5 +1,7 @@
 package models
 
+// Product represents a product
+// @name Product
 type Product struct {
 	ProductID    int    `json:"product_id" binding:"required,min=1" example:"12345"`
 	SKU          string `json:"sku" binding:"required,min=1,max=100" example:"ABC-123-XYZ"`

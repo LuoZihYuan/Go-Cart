@@ -1,5 +1,7 @@
 package models
 
+// Error represents an error response
+// @name Error
 type Error struct {
 	Error   string `json:"error" example:"INVALID_INPUT"`
 	Message string `json:"message" example:"The provided input data is invalid"`

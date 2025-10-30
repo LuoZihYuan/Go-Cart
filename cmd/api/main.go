@@ -50,18 +50,35 @@ func main() {
 	// productRepo := repository.NewProductRepository(db)
 	// === IN-MEMORY MODE: Comment out the line below when using MySQL ===
 	productRepo := repository.NewProductRepository()
+	cartRepo := repository.NewCartRepository()
+	warehouseRepo := repository.NewWarehouseRepository()
+	paymentRepo := repository.NewPaymentRepository()
 
 	// Initialize services
 	productService := services.NewProductService(productRepo)
+	cartService := services.NewCartService(cartRepo, productRepo)
+	warehouseService := services.NewWarehouseService(warehouseRepo, productRepo)
+	paymentService := services.NewPaymentService(paymentRepo, cartRepo)
 
 	// Initialize handlers
 	productHandler := handlers.NewProductHandler(productService)
+	cartHandler := handlers.NewCartHandler(cartService)
+	warehouseHandler := handlers.NewWarehouseHandler(warehouseService)
+	paymentHandler := handlers.NewPaymentHandler(paymentService)
+
+	// Combine all handlers
+	allHandlers := &router.AllHandlers{
+		ProductHandler:   productHandler,
+		CartHandler:      cartHandler,
+		WarehouseHandler: warehouseHandler,
+		PaymentHandler:   paymentHandler,
+	}
 
 	// Setup Gin router
 	r := gin.Default()
 
 	// Setup routes
-	router.SetupRoutes(r, productHandler)
+	router.SetupRoutes(r, allHandlers)
 
 	// Setup Swagger (conditionally compiled based on build tags)
 	setupSwagger(r)

@@ -24,7 +24,7 @@ func NewProductHandler(service *services.ProductService) *ProductHandler {
 // @Tags Products
 // @Accept json
 // @Produce json
-// @Param productId path int true "Product ID" minimum(1)
+// @Param productId path int true "Unique identifier for the product" minimum(1)
 // @Success 200 {object} models.Product
 // @Failure 404 {object} models.Error
 // @Failure 500 {object} models.Error
@@ -74,7 +74,7 @@ func (h *ProductHandler) GetProduct(c *gin.Context) {
 // @Tags Products
 // @Accept json
 // @Produce json
-// @Param productId path int true "Product ID" minimum(1)
+// @Param productId path int true "Unique identifier for the product" minimum(1)
 // @Param product body models.Product true "Product details"
 // @Success 204 "Product details added successfully"
 // @Failure 400 {object} models.Error

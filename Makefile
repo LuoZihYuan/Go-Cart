@@ -29,14 +29,21 @@ log-dev:  ## View local development logs (Ctrl+C to exit)
 	docker-compose --profile dev logs -f || true
 
 shell-dev:  ## Open interactive shell in local container
-	docker exec -it go-cart-api-dev-1 sh
+	docker exec -it api.gocart-dev sh
 
 stop-dev:  ## Stop local development container
 	docker-compose --profile dev down
 
 destroy-dev:  ## Destroy local Docker environment
 	docker-compose --profile dev down --volumes
-	docker system prune -f
+	@echo ""
+	@read -p "Clean up unused Docker images and containers? (y/n): " cleanup && \
+	if [ "$$cleanup" = "y" ] || [ "$$cleanup" = "Y" ]; then \
+		echo "Cleaning up unused Docker resources..." && \
+		docker system prune -f; \
+	else \
+		echo "Skipping Docker cleanup"; \
+	fi
 
 # =============================================================================
 # Staging (AWS)
@@ -66,7 +73,7 @@ deploy-stage:  ## Deploy to AWS staging (requires Terraform)
 		echo "Step 2: Building and pushing Docker image..."; \
 		docker-compose --profile stage build && \
 		aws ecr get-login-password --region $$AWS_REGION | docker login --username AWS --password-stdin $$(echo $$ECR_REPO_URL | cut -d'/' -f1) && \
-		docker tag go-cart-api:stage $$ECR_REPO_URL:stage && \
+		docker tag api.gocart:stage $$ECR_REPO_URL:stage && \
 		docker push $$ECR_REPO_URL:stage && \
 		\
 		echo "Step 3: Creating remaining infrastructure..." && \
@@ -82,7 +89,7 @@ deploy-stage:  ## Deploy to AWS staging (requires Terraform)
 		echo "1/2 Building and pushing Docker image..." && \
 		docker-compose --profile stage build && \
 		aws ecr get-login-password --region $$AWS_REGION | docker login --username AWS --password-stdin $$(echo $$ECR_REPO_URL | cut -d'/' -f1) && \
-		docker tag go-cart-api:stage $$ECR_REPO_URL:stage && \
+		docker tag api.gocart:stage $$ECR_REPO_URL:stage && \
 		docker push $$ECR_REPO_URL:stage && \
 		\
 		echo "2/2 Updating ECS service..." && \
@@ -141,10 +148,18 @@ destroy-stage:  ## Destroy AWS staging infrastructure (DESTRUCTIVE)
 	@echo "WARNING: This will DESTROY all staging AWS resources"
 	@read -p "Type 'yes' to confirm: " confirm && [ "$$confirm" = "yes" ] || (echo "Aborted" && exit 1)
 	@echo "Destroying Terraform infrastructure..."
-	@cd terraform/stage && terraform destroy
+	@cd terraform/stage && terraform destroy -auto-approve
 	@echo "Cleaning local Docker images..."
-	@docker rmi go-cart-api:stage 2>/dev/null || true
+	@docker rmi api.gocart:stage 2>/dev/null || true
 	@docker images | grep "go-cart-stage" | awk '{print $$3}' | xargs docker rmi -f 2>/dev/null || true
+	@echo ""
+	@read -p "Clean up unused Docker images and containers? (y/n): " cleanup && \
+	if [ "$$cleanup" = "y" ] || [ "$$cleanup" = "Y" ]; then \
+		echo "Cleaning up unused Docker resources..." && \
+		docker system prune -f; \
+	else \
+		echo "Skipping Docker cleanup"; \
+	fi
 	@echo "Cleanup complete"
 
 # =============================================================================
@@ -175,7 +190,7 @@ deploy-prod:  ## Deploy to AWS production (requires Terraform)
 		echo "Step 2: Building and pushing Docker image..."; \
 		docker-compose --profile prod build && \
 		aws ecr get-login-password --region $$AWS_REGION | docker login --username AWS --password-stdin $$(echo $$ECR_REPO_URL | cut -d'/' -f1) && \
-		docker tag go-cart-api:prod $$ECR_REPO_URL:prod && \
+		docker tag api.gocart:prod $$ECR_REPO_URL:prod && \
 		docker push $$ECR_REPO_URL:prod && \
 		\
 		echo "Step 3: Creating remaining infrastructure..." && \
@@ -191,7 +206,7 @@ deploy-prod:  ## Deploy to AWS production (requires Terraform)
 		echo "1/2 Building and pushing Docker image..." && \
 		docker-compose --profile prod build && \
 		aws ecr get-login-password --region $$AWS_REGION | docker login --username AWS --password-stdin $$(echo $$ECR_REPO_URL | cut -d'/' -f1) && \
-		docker tag go-cart-api:prod $$ECR_REPO_URL:prod && \
+		docker tag api.gocart:prod $$ECR_REPO_URL:prod && \
 		docker push $$ECR_REPO_URL:prod && \
 		\
 		echo "2/2 Updating ECS service..." && \
@@ -250,10 +265,18 @@ destroy-prod:  ## Destroy AWS production infrastructure (DESTRUCTIVE)
 	@echo "WARNING: This will DESTROY all production AWS resources"
 	@read -p "Type 'yes' to confirm: " confirm && [ "$$confirm" = "yes" ] || (echo "Aborted" && exit 1)
 	@echo "Destroying Terraform infrastructure..."
-	@cd terraform/prod && terraform destroy
+	@cd terraform/prod && terraform destroy -auto-approve
 	@echo "Cleaning local Docker images..."
-	@docker rmi go-cart-api:prod 2>/dev/null || true
+	@docker rmi api.gocart:prod 2>/dev/null || true
 	@docker images | grep "go-cart-prod" | awk '{print $$3}' | xargs docker rmi -f 2>/dev/null || true
+	@echo ""
+	@read -p "Clean up unused Docker images and containers? (y/n): " cleanup && \
+	if [ "$$cleanup" = "y" ] || [ "$$cleanup" = "Y" ]; then \
+		echo "Cleaning up unused Docker resources..." && \
+		docker system prune -f; \
+	else \
+		echo "Skipping Docker cleanup"; \
+	fi
 	@echo "Cleanup complete"
 
 # =============================================================================
