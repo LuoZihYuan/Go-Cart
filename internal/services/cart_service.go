@@ -14,11 +14,11 @@ var (
 )
 
 type CartService struct {
-	cartRepo    *repository.CartRepository
-	productRepo *repository.ProductRepository
+	cartRepo    repository.CartRepository
+	productRepo repository.ProductRepository
 }
 
-func NewCartService(cartRepo *repository.CartRepository, productRepo *repository.ProductRepository) *CartService {
+func NewCartService(cartRepo repository.CartRepository, productRepo repository.ProductRepository) *CartService {
 	return &CartService{
 		cartRepo:    cartRepo,
 		productRepo: productRepo,

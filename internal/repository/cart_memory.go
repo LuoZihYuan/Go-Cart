@@ -11,21 +11,21 @@ var (
 	ErrCartNotFound = errors.New("cart not found")
 )
 
-type CartRepository struct {
+type CartMemoryRepository struct {
 	carts      map[int]*models.Cart
 	mu         sync.RWMutex
 	nextCartID int
 }
 
-func NewCartRepository() *CartRepository {
-	return &CartRepository{
+func NewCartMemoryRepository() *CartMemoryRepository {
+	return &CartMemoryRepository{
 		carts:      make(map[int]*models.Cart),
 		nextCartID: 1,
 	}
 }
 
 // Create creates a new cart
-func (r *CartRepository) Create(customerID int) (*models.Cart, error) {
+func (r *CartMemoryRepository) Create(customerID int) (*models.Cart, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -42,7 +42,7 @@ func (r *CartRepository) Create(customerID int) (*models.Cart, error) {
 }
 
 // GetByID retrieves a cart by its ID
-func (r *CartRepository) GetByID(cartID int) (*models.Cart, error) {
+func (r *CartMemoryRepository) GetByID(cartID int) (*models.Cart, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -60,7 +60,7 @@ func (r *CartRepository) GetByID(cartID int) (*models.Cart, error) {
 }
 
 // AddItem adds an item to a cart
-func (r *CartRepository) AddItem(cartID int, item models.CartItem) error {
+func (r *CartMemoryRepository) AddItem(cartID int, item models.CartItem) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -87,7 +87,7 @@ func (r *CartRepository) AddItem(cartID int, item models.CartItem) error {
 }
 
 // Delete removes a cart (used after checkout)
-func (r *CartRepository) Delete(cartID int) error {
+func (r *CartMemoryRepository) Delete(cartID int) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

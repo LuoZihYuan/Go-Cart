@@ -3,16 +3,16 @@ package models
 // Cart represents a shopping cart
 // @name Cart
 type Cart struct {
-	CartID     int        `json:"cart_id"`
-	CustomerID int        `json:"customer_id"`
-	Items      []CartItem `json:"items,omitempty"`
+	CartID     int        `json:"cart_id" dynamodbav:"cart_id"`
+	CustomerID int        `json:"customer_id" dynamodbav:"customer_id"`
+	Items      []CartItem `json:"items,omitempty" dynamodbav:"items,omitempty"`
 }
 
 // CartItem represents an item in a shopping cart
 // @name CartItem
 type CartItem struct {
-	ProductID int `json:"product_id"`
-	Quantity  int `json:"quantity"`
+	ProductID int `json:"product_id" dynamodbav:"product_id"`
+	Quantity  int `json:"quantity" dynamodbav:"quantity"`
 }
 
 // CreateCartRequest represents a request to create a new cart

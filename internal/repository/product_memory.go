@@ -11,19 +11,19 @@ var (
 	ErrProductNotFound = errors.New("product not found")
 )
 
-type ProductRepository struct {
+type ProductMemoryRepository struct {
 	products map[int]*models.Product
 	mu       sync.RWMutex
 }
 
-func NewProductRepository() *ProductRepository {
-	return &ProductRepository{
+func NewProductMemoryRepository() *ProductMemoryRepository {
+	return &ProductMemoryRepository{
 		products: make(map[int]*models.Product),
 	}
 }
 
 // GetByID retrieves a product by its ID
-func (r *ProductRepository) GetByID(productID int) (*models.Product, error) {
+func (r *ProductMemoryRepository) GetByID(productID int) (*models.Product, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -38,7 +38,7 @@ func (r *ProductRepository) GetByID(productID int) (*models.Product, error) {
 }
 
 // Upsert creates or updates a product's details
-func (r *ProductRepository) Upsert(product *models.Product) error {
+func (r *ProductMemoryRepository) Upsert(product *models.Product) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -50,7 +50,7 @@ func (r *ProductRepository) Upsert(product *models.Product) error {
 }
 
 // Exists checks if a product exists
-func (r *ProductRepository) Exists(productID int) (bool, error) {
+func (r *ProductMemoryRepository) Exists(productID int) (bool, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
