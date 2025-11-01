@@ -7,10 +7,8 @@ import (
 )
 
 type AllHandlers struct {
-	ProductHandler   *handlers.ProductHandler
-	CartHandler      *handlers.CartHandler
-	WarehouseHandler *handlers.WarehouseHandler
-	PaymentHandler   *handlers.PaymentHandler
+	ProductHandler *handlers.ProductHandler
+	CartHandler    *handlers.CartHandler
 }
 
 func SetupRoutes(r *gin.Engine, h *AllHandlers) {
@@ -30,19 +28,6 @@ func SetupRoutes(r *gin.Engine, h *AllHandlers) {
 			carts.GET("/:shoppingCartId", h.CartHandler.GetCart)
 			carts.POST("/:shoppingCartId/items", h.CartHandler.AddItemsToCart)
 			carts.POST("/:shoppingCartId/checkout", h.CartHandler.CheckoutCart)
-		}
-
-		// Warehouse routes
-		warehouse := v1.Group("/warehouse")
-		{
-			warehouse.POST("/reserve", h.WarehouseHandler.ReserveInventory)
-			warehouse.POST("/ship", h.WarehouseHandler.ShipProduct)
-		}
-
-		// Payment routes
-		payments := v1.Group("/payments")
-		{
-			payments.POST("/checkout", h.PaymentHandler.ProcessPayment)
 		}
 	}
 }

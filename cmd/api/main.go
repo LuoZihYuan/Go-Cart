@@ -1,11 +1,6 @@
 package main
 
 import (
-	// === MYSQL MODE: Uncomment the following imports ===
-	// "database/sql"
-	// _ "github.com/go-sql-driver/mysql"
-	// === END MYSQL IMPORTS ===
-
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -37,41 +32,21 @@ import (
 // @tag.name Payments
 // @tag.description Payment processing operations
 func main() {
-	// === MYSQL MODE: Uncomment this section to use MySQL database ===
-	// db, err := sql.Open("mysql", "user:password@tcp(localhost:3306)/ecommerce")
-	// if err != nil {
-	// 	log.Fatal("Failed to connect to database:", err)
-	// }
-	// defer db.Close()
-	// === END MYSQL DATABASE CONNECTION ===
-
-	// Initialize repositories
-	// === MYSQL MODE: Uncomment the line below and comment out the in-memory line ===
-	// productRepo := repository.NewProductRepository(db)
-	// === IN-MEMORY MODE: Comment out the line below when using MySQL ===
 	productRepo := repository.NewProductRepository()
 	cartRepo := repository.NewCartRepository()
-	warehouseRepo := repository.NewWarehouseRepository()
-	paymentRepo := repository.NewPaymentRepository()
 
 	// Initialize services
 	productService := services.NewProductService(productRepo)
 	cartService := services.NewCartService(cartRepo, productRepo)
-	warehouseService := services.NewWarehouseService(warehouseRepo, productRepo)
-	paymentService := services.NewPaymentService(paymentRepo, cartRepo)
 
 	// Initialize handlers
 	productHandler := handlers.NewProductHandler(productService)
 	cartHandler := handlers.NewCartHandler(cartService)
-	warehouseHandler := handlers.NewWarehouseHandler(warehouseService)
-	paymentHandler := handlers.NewPaymentHandler(paymentService)
 
 	// Combine all handlers
 	allHandlers := &router.AllHandlers{
-		ProductHandler:   productHandler,
-		CartHandler:      cartHandler,
-		WarehouseHandler: warehouseHandler,
-		PaymentHandler:   paymentHandler,
+		ProductHandler: productHandler,
+		CartHandler:    cartHandler,
 	}
 
 	// Setup Gin router

@@ -53,18 +53,6 @@ func (s *ProductService) AddProductDetails(productID int, product *models.Produc
 		return err
 	}
 
-	// Check if product exists (optional, depending on your business logic)
-	// If you want to enforce that product must exist first, uncomment:
-	/*
-		exists, err := s.repo.Exists(productID)
-		if err != nil {
-			return err
-		}
-		if !exists {
-			return ErrProductNotFound
-		}
-	*/
-
 	return s.repo.Upsert(product)
 }
 

@@ -50,8 +50,7 @@ func (h *CartHandler) CreateCart(c *gin.Context) {
 			Details: err.Error(),
 		})
 		return
-	}
-	if err != nil {
+	} else if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Error{
 			Error:   "INTERNAL_ERROR",
 			Message: "Internal server error",
@@ -102,16 +101,14 @@ func (h *CartHandler) GetCart(c *gin.Context) {
 			Details: "No cart exists with the specified ID",
 		})
 		return
-	}
-	if err == services.ErrInvalidCart {
+	} else if err == services.ErrInvalidCart {
 		c.JSON(http.StatusBadRequest, models.Error{
 			Error:   "INVALID_INPUT",
 			Message: "Invalid cart ID",
 			Details: err.Error(),
 		})
 		return
-	}
-	if err != nil {
+	} else if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Error{
 			Error:   "INTERNAL_ERROR",
 			Message: "Internal server error",
@@ -173,24 +170,21 @@ func (h *CartHandler) AddItemsToCart(c *gin.Context) {
 			Details: "No cart exists with the specified ID",
 		})
 		return
-	}
-	if err == services.ErrProductNotFound {
+	} else if err == services.ErrProductNotFound {
 		c.JSON(http.StatusNotFound, models.Error{
 			Error:   "NOT_FOUND",
 			Message: "Product not found",
 			Details: "No product exists with the specified ID",
 		})
 		return
-	}
-	if err == services.ErrInvalidCart {
+	} else if err == services.ErrInvalidCart {
 		c.JSON(http.StatusBadRequest, models.Error{
 			Error:   "INVALID_INPUT",
 			Message: "Invalid input data",
 			Details: err.Error(),
 		})
 		return
-	}
-	if err != nil {
+	} else if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Error{
 			Error:   "INTERNAL_ERROR",
 			Message: "Internal server error",
@@ -239,24 +233,21 @@ func (h *CartHandler) CheckoutCart(c *gin.Context) {
 			Details: "No cart exists with the specified ID",
 		})
 		return
-	}
-	if err == services.ErrEmptyCart {
+	} else if err == services.ErrEmptyCart {
 		c.JSON(http.StatusBadRequest, models.Error{
 			Error:   "INVALID_STATE",
 			Message: "Cart is empty",
 			Details: "Cannot checkout an empty cart",
 		})
 		return
-	}
-	if err == services.ErrInvalidCart {
+	} else if err == services.ErrInvalidCart {
 		c.JSON(http.StatusBadRequest, models.Error{
 			Error:   "INVALID_INPUT",
 			Message: "Invalid cart",
 			Details: err.Error(),
 		})
 		return
-	}
-	if err != nil {
+	} else if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Error{
 			Error:   "INTERNAL_ERROR",
 			Message: "Internal server error",

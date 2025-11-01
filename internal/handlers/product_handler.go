@@ -53,8 +53,7 @@ func (h *ProductHandler) GetProduct(c *gin.Context) {
 			Details: "No product exists with the specified ID",
 		})
 		return
-	}
-	if err != nil {
+	} else if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Error{
 			Error:   "INTERNAL_ERROR",
 			Message: "Internal server error",
