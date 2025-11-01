@@ -53,21 +53,3 @@ module "ecs" {
   task_cpu           = var.task_cpu
   task_memory        = var.task_memory
 }
-
-# Uncomment when RDS and Secrets are needed
-# module "secrets" {
-#   source = "../modules/secrets"
-#
-#   project_name = var.project_name
-#   environment  = var.environment
-# }
-#
-# module "rds" {
-#   source = "../modules/rds"
-#
-#   project_name      = var.project_name
-#   environment       = var.environment
-#   subnet_ids        = module.networking.public_subnet_ids
-#   security_group_id = module.security.rds_security_group_id
-#   master_password   = module.secrets.db_password
-# }

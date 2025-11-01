@@ -25,32 +25,3 @@ resource "aws_security_group" "ecs" {
     Project     = var.project_name
   }
 }
-
-# Uncomment when RDS is enabled
-# resource "aws_security_group" "rds" {
-#   name        = "${var.project_name}-${var.environment}-rds-sg"
-#   description = "Security group for RDS"
-#   vpc_id      = var.vpc_id
-#
-#   ingress {
-#     description     = "MySQL from ECS"
-#     from_port       = 3306
-#     to_port         = 3306
-#     protocol        = "tcp"
-#     security_groups = [aws_security_group.ecs.id]
-#   }
-#
-#   egress {
-#     description = "Allow all outbound"
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-#
-#   tags = {
-#     Name        = "${var.project_name}-${var.environment}-rds-sg"
-#     Environment = var.environment
-#     Project     = var.project_name
-#   }
-# }
