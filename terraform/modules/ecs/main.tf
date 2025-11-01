@@ -24,6 +24,69 @@ resource "aws_cloudwatch_log_group" "ecs" {
   }
 }
 
+# Build environment variables based on db_type
+locals {
+  base_environment = [
+    {
+      name  = "GIN_MODE"
+      value = "release"
+    },
+    {
+      name  = "DB_TYPE"
+      value = var.db_type
+    }
+  ]
+
+  mysql_environment = var.db_type == "mysql" ? [
+    {
+      name  = "MYSQL_HOST"
+      value = var.mysql_host
+    },
+    {
+      name  = "MYSQL_PORT"
+      value = tostring(var.mysql_port)
+    },
+    {
+      name  = "MYSQL_DATABASE"
+      value = var.mysql_database
+    },
+    {
+      name  = "MYSQL_USER"
+      value = var.mysql_user
+    },
+    {
+      name  = "MYSQL_PASSWORD"
+      value = var.mysql_password
+    },
+    {
+      name  = "MYSQL_MAX_CONNECTIONS"
+      value = "20"
+    },
+    {
+      name  = "MYSQL_MAX_IDLE_CONNECTIONS"
+      value = "5"
+    }
+  ] : []
+
+  dynamo_environment = var.db_type == "dynamo" ? [
+    {
+      name  = "DYNAMODB_REGION"
+      value = var.aws_region
+    },
+    {
+      name  = "DYNAMODB_TABLE_PREFIX"
+      value = var.dynamodb_table_prefix
+    }
+  ] : []
+
+  # Combine all environments
+  environment = concat(
+    local.base_environment,
+    local.mysql_environment,
+    local.dynamo_environment
+  )
+}
+
 resource "aws_ecs_task_definition" "app" {
   family                   = "${var.project_name}-${var.environment}"
   network_mode             = "awsvpc"
@@ -46,12 +109,7 @@ resource "aws_ecs_task_definition" "app" {
         }
       ]
 
-      environment = [
-        {
-          name  = "GIN_MODE"
-          value = "release"
-        }
-      ]
+      environment = local.environment
 
       logConfiguration = {
         logDriver = "awslogs"

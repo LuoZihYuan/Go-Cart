@@ -17,6 +17,21 @@ services:
       - "8080:8080"
     environment:
       - GIN_MODE=debug
+      - DB_TYPE=${DB_TYPE:-memory}
+      # MySQL configuration (used when DB_TYPE=mysql)
+      - MYSQL_HOST=mysql.gocart-dev
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=gocart
+      - MYSQL_USER=gocart
+      - MYSQL_PASSWORD=secret
+      - MYSQL_MAX_CONNECTIONS=20
+      - MYSQL_MAX_IDLE_CONNECTIONS=5
+      # DynamoDB configuration (used when DB_TYPE=dynamo)
+      - DYNAMODB_ENDPOINT=http://dynamo.gocart-dev:8000
+      - DYNAMODB_REGION=us-east-1
+      - DYNAMODB_TABLE_PREFIX=gocart-dev
+      - AWS_ACCESS_KEY_ID=fakekey
+      - AWS_SECRET_ACCESS_KEY=fakesecret
     networks:
       - gocart-network
 
@@ -54,6 +69,62 @@ services:
     networks:
       - gocart-network
 
+  # MySQL database for development
+  mysql-dev:
+    profiles: ["mysql"]
+    container_name: mysql.gocart-dev
+    image: mysql:8.4.6
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=gocart
+      - MYSQL_USER=gocart
+      - MYSQL_PASSWORD=secret
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./scripts/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "3306:3306"
+    networks:
+      - gocart-network
+    healthcheck:
+      test:
+        ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # DynamoDB Local for development
+  dynamo-dev:
+    profiles: ["dynamo"]
+    container_name: dynamo.gocart-dev
+    image: amazon/dynamodb-local:latest
+    command: "-jar DynamoDBLocal.jar -sharedDb -inMemory"
+    ports:
+      - "8000:8000"
+    networks:
+      - gocart-network
+
+  # DynamoDB table initialization
+  dynamo-init:
+    profiles: ["dynamo"]
+    container_name: temp
+    image: amazon/aws-cli:latest
+    depends_on:
+      - dynamo-dev
+    environment:
+      - AWS_ACCESS_KEY_ID=fakekey
+      - AWS_SECRET_ACCESS_KEY=fakesecret
+    volumes:
+      - ./scripts/dynamodb/init-local.sh:/init.sh:ro
+    networks:
+      - gocart-network
+    entrypoint: ["/bin/sh"]
+    command: ["/init.sh"]
+    restart: "no"
+
 networks:
   gocart-network:
     driver: bridge
+
+volumes:
+  mysql-data:

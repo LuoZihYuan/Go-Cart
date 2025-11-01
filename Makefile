@@ -20,50 +20,57 @@ setup:  ## Setup development environment
 # Development (Local)
 # =============================================================================
 
-deploy-dev:  ## Start local development with hot-reload
-	docker-compose --profile dev up --build -d
-	@echo "Dev container started in background"
-	@echo "View logs: make log-dev"
+deploy-dev:  ## Start local development with hot-reload (db=memory|mysql|dynamo)
+	@DB_TYPE=$${db:-memory}; \
+	export DB_TYPE=$$DB_TYPE; \
+	docker-compose --profile dev --profile $$DB_TYPE up --build -d; \
+	echo "Dev container started in background with DB_TYPE=$$DB_TYPE"; \
+	echo "View logs: make log-dev"
 
-log-dev:  ## View local development logs (Ctrl+C to exit)
-	docker-compose --profile dev logs -f || true
+log-dev:  ## View all running container logs (Ctrl+C to exit)
+	docker-compose logs -f || true
 
-shell-dev:  ## Open interactive shell in local container
+shell-dev:  ## Open interactive shell in local API container
 	docker exec -it api.gocart-dev sh
 
-stop-dev:  ## Stop local development container
-	docker-compose --profile dev down
+stop-dev:  ## Stop all local development containers
+	@docker-compose --profile dev --profile mysql --profile dynamo down --remove-orphans
+	@echo "All development containers stopped"
 
-destroy-dev:  ## Destroy local Docker environment
-	docker-compose --profile dev down --volumes
-	@echo ""
-	@read -p "Clean up unused Docker images and containers? (y/n): " cleanup && \
-	if [ "$$cleanup" = "y" ] || [ "$$cleanup" = "Y" ]; then \
-		echo "Cleaning up unused Docker resources..." && \
-		docker system prune -f; \
-	else \
-		echo "Skipping Docker cleanup"; \
-	fi
+destroy-dev:  ## Destroy local Docker environment including volumes and build cache
+	@echo "Stopping and removing containers..."
+	@docker-compose --profile dev --profile mysql --profile dynamo down --volumes --remove-orphans
+	@echo "Removing dev images..."
+	@docker rmi api.gocart:dev mysql:8.4.6 amazon/dynamodb-local:latest amazon/aws-cli:latest 2>/dev/null || true
+	@echo "Removing named volumes..."
+	@docker volume rm go-cart_mysql-data 2>/dev/null || true
+	@echo "Removing dangling volumes..."
+	@docker volume prune -f
+	@echo "Removing build history and cache..."
+	@docker buildx history ls | grep gocart_dev | awk '{print $$1}' | xargs docker buildx history rm 2>/dev/null || true
+	@docker system prune -f
+	@echo "Development environment destroyed"
 
 # =============================================================================
 # Staging (AWS)
 # =============================================================================
 
-deploy-stage:  ## Deploy to AWS staging (requires Terraform)
+deploy-stage:  ## Deploy to AWS staging (requires Terraform) (db=memory|mysql|dynamo)
 	@if [ ! -d "terraform/stage" ]; then \
 		echo "Terraform not configured yet."; \
 		echo "deploy-stage is for AWS deployment only."; \
 		echo "Use 'make deploy-dev' for local development."; \
 		exit 1; \
 	fi
-	@echo "Getting AWS configuration..."
-	@AWS_REGION=$$(aws configure get region) || (echo "AWS region not configured. Run: aws configure" && exit 1); \
+	@DB_TYPE=$${db:-memory}; \
+	echo "Getting AWS configuration..."; \
+	AWS_REGION=$$(aws configure get region) || (echo "AWS region not configured. Run: aws configure" && exit 1); \
 	\
 	echo "Checking if ECR repository exists..."; \
 	if ! aws ecr describe-repositories --repository-names go-cart-stage > /dev/null 2>&1; then \
 		echo "First-time deployment detected."; \
 		echo "Step 1: Initializing Terraform and creating ECR repository..."; \
-		cd terraform/stage && terraform init > /dev/null 2>&1 && terraform apply -target=module.ecr -auto-approve && cd ../..; \
+		cd terraform/stage && terraform init > /dev/null 2>&1 && terraform apply -target=module.ecr -var="db_type=$$DB_TYPE" -auto-approve && cd ../..; \
 		ECR_REPO_URL=$$(aws ecr describe-repositories \
 			--repository-names go-cart-stage \
 			--query 'repositories[0].repositoryUri' \
@@ -76,8 +83,8 @@ deploy-stage:  ## Deploy to AWS staging (requires Terraform)
 		docker tag api.gocart:stage $$ECR_REPO_URL:stage && \
 		docker push $$ECR_REPO_URL:stage && \
 		\
-		echo "Step 3: Creating remaining infrastructure..." && \
-		cd terraform/stage && terraform apply -auto-approve && cd ../..; \
+		echo "Step 3: Creating remaining infrastructure with DB_TYPE=$$DB_TYPE..." && \
+		cd terraform/stage && terraform apply -var="db_type=$$DB_TYPE" -auto-approve && cd ../..; \
 	else \
 		echo "Infrastructure exists. Updating deployment..."; \
 		ECR_REPO_URL=$$(aws ecr describe-repositories \
@@ -92,11 +99,11 @@ deploy-stage:  ## Deploy to AWS staging (requires Terraform)
 		docker tag api.gocart:stage $$ECR_REPO_URL:stage && \
 		docker push $$ECR_REPO_URL:stage && \
 		\
-		echo "2/2 Updating ECS service..." && \
-		cd terraform/stage && terraform apply -auto-approve && cd ../..; \
+		echo "2/2 Updating ECS service with DB_TYPE=$$DB_TYPE..." && \
+		cd terraform/stage && terraform apply -var="db_type=$$DB_TYPE" -auto-approve && cd ../..; \
 	fi && \
 	echo "" && \
-	echo "Staging deployed to AWS!" && \
+	echo "Staging deployed to AWS with DB_TYPE=$$DB_TYPE!" && \
 	echo "Waiting for service to become stable..." && \
 	aws ecs wait services-stable --cluster go-cart-stage --services go-cart-stage && \
 	echo "Service is stable. Getting public IP..." && \
@@ -166,21 +173,22 @@ destroy-stage:  ## Destroy AWS staging infrastructure (DESTRUCTIVE)
 # Production (AWS)
 # =============================================================================
 
-deploy-prod:  ## Deploy to AWS production (requires Terraform)
+deploy-prod:  ## Deploy to AWS production (requires Terraform) (db=memory|mysql|dynamo)
 	@if [ ! -d "terraform/prod" ]; then \
 		echo "Terraform not configured yet."; \
 		echo "deploy-prod is for AWS deployment only."; \
 		echo "Use 'make deploy-dev' for local development."; \
 		exit 1; \
 	fi
-	@echo "Getting AWS configuration..."
-	@AWS_REGION=$$(aws configure get region) || (echo "AWS region not configured. Run: aws configure" && exit 1); \
+	@DB_TYPE=$${db:-memory}; \
+	echo "Getting AWS configuration..."; \
+	AWS_REGION=$$(aws configure get region) || (echo "AWS region not configured. Run: aws configure" && exit 1); \
 	\
 	echo "Checking if ECR repository exists..."; \
 	if ! aws ecr describe-repositories --repository-names go-cart-prod > /dev/null 2>&1; then \
 		echo "First-time deployment detected."; \
 		echo "Step 1: Initializing Terraform and creating ECR repository..."; \
-		cd terraform/prod && terraform init > /dev/null 2>&1 && terraform apply -target=module.ecr -auto-approve && cd ../..; \
+		cd terraform/prod && terraform init > /dev/null 2>&1 && terraform apply -target=module.ecr -var="db_type=$$DB_TYPE" -auto-approve && cd ../..; \
 		ECR_REPO_URL=$$(aws ecr describe-repositories \
 			--repository-names go-cart-prod \
 			--query 'repositories[0].repositoryUri' \
@@ -193,8 +201,8 @@ deploy-prod:  ## Deploy to AWS production (requires Terraform)
 		docker tag api.gocart:prod $$ECR_REPO_URL:prod && \
 		docker push $$ECR_REPO_URL:prod && \
 		\
-		echo "Step 3: Creating remaining infrastructure..." && \
-		cd terraform/prod && terraform apply -auto-approve && cd ../..; \
+		echo "Step 3: Creating remaining infrastructure with DB_TYPE=$$DB_TYPE..." && \
+		cd terraform/prod && terraform apply -var="db_type=$$DB_TYPE" -auto-approve && cd ../..; \
 	else \
 		echo "Infrastructure exists. Updating deployment..."; \
 		ECR_REPO_URL=$$(aws ecr describe-repositories \
@@ -209,11 +217,11 @@ deploy-prod:  ## Deploy to AWS production (requires Terraform)
 		docker tag api.gocart:prod $$ECR_REPO_URL:prod && \
 		docker push $$ECR_REPO_URL:prod && \
 		\
-		echo "2/2 Updating ECS service..." && \
-		cd terraform/prod && terraform apply -auto-approve && cd ../..; \
+		echo "2/2 Updating ECS service with DB_TYPE=$$DB_TYPE..." && \
+		cd terraform/prod && terraform apply -var="db_type=$$DB_TYPE" -auto-approve && cd ../..; \
 	fi && \
 	echo "" && \
-	echo "Production deployed to AWS!" && \
+	echo "Production deployed to AWS with DB_TYPE=$$DB_TYPE!" && \
 	echo "Waiting for service to become stable..." && \
 	aws ecs wait services-stable --cluster go-cart-prod --services go-cart-prod && \
 	echo "Service is stable. Getting public IP..." && \

@@ -55,3 +55,49 @@ variable "task_memory" {
   type        = string
   default     = "512"
 }
+
+# Database configuration
+variable "db_type" {
+  description = "Database type: memory, mysql, or dynamo"
+  type        = string
+  default     = "memory"
+}
+
+# MySQL configuration
+variable "mysql_host" {
+  description = "MySQL host address"
+  type        = string
+  default     = ""
+}
+
+variable "mysql_port" {
+  description = "MySQL port"
+  type        = number
+  default     = 3306
+}
+
+variable "mysql_database" {
+  description = "MySQL database name"
+  type        = string
+  default     = ""
+}
+
+variable "mysql_user" {
+  description = "MySQL username"
+  type        = string
+  default     = ""
+}
+
+variable "mysql_password" {
+  description = "MySQL password"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+# DynamoDB configuration
+variable "dynamodb_table_prefix" {
+  description = "DynamoDB table name prefix"
+  type        = string
+  default     = ""
+}

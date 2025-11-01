@@ -14,6 +14,19 @@ output "ecs_service_name" {
 }
 
 output "desired_count" {
-  description = "Desired number of tasks"
+  description = "Desired count of ECS tasks"
   value       = var.desired_count
+}
+
+output "rds_address" {
+  description = "RDS address (only populated when db_type=mysql)"
+  value       = var.db_type == "mysql" ? module.rds[0].address : "N/A"
+}
+
+output "dynamodb_tables" {
+  description = "DynamoDB table names (only populated when db_type=dynamo)"
+  value = var.db_type == "dynamo" ? {
+    products = module.dynamodb[0].products_table_name
+    carts    = module.dynamodb[0].carts_table_name
+  } : null
 }
