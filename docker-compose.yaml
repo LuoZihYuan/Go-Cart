@@ -29,7 +29,6 @@ services:
       # DynamoDB configuration (used when DB_TYPE=dynamo)
       - DYNAMODB_ENDPOINT=http://dynamo.gocart-dev:8000
       - DYNAMODB_REGION=us-east-1
-      - DYNAMODB_TABLE_PREFIX=gocart-dev
       - AWS_ACCESS_KEY_ID=fakekey
       - AWS_SECRET_ACCESS_KEY=fakesecret
     networks:

@@ -84,7 +84,4 @@ module "ecs" {
   mysql_database = var.db_type == "mysql" ? module.rds[0].database_name : ""
   mysql_user     = var.db_type == "mysql" ? module.rds[0].username : ""
   mysql_password = var.db_type == "mysql" ? module.rds[0].password : ""
-
-  # DynamoDB configuration (only used when db_type=dynamo)
-  dynamodb_table_prefix = var.db_type == "dynamo" ? module.dynamodb[0].table_prefix : ""
 }

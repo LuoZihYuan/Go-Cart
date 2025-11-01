@@ -2,7 +2,7 @@
 
 # Products table
 resource "aws_dynamodb_table" "products" {
-  name         = "${var.project_name}-${var.environment}-Products"
+  name         = "Products"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "product_id"
 
@@ -12,7 +12,7 @@ resource "aws_dynamodb_table" "products" {
   }
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-Products"
+    Name        = "Products"
     Environment = var.environment
     Project     = var.project_name
   }
@@ -20,7 +20,7 @@ resource "aws_dynamodb_table" "products" {
 
 # Carts table
 resource "aws_dynamodb_table" "carts" {
-  name         = "${var.project_name}-${var.environment}-Carts"
+  name         = "Carts"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "cart_id"
 
@@ -30,7 +30,7 @@ resource "aws_dynamodb_table" "carts" {
   }
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-Carts"
+    Name        = "Carts"
     Environment = var.environment
     Project     = var.project_name
   }

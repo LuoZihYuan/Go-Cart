@@ -94,10 +94,3 @@ variable "mysql_password" {
   sensitive   = true
   default     = ""
 }
-
-# DynamoDB configuration
-variable "dynamodb_table_prefix" {
-  description = "DynamoDB table name prefix"
-  type        = string
-  default     = ""
-}

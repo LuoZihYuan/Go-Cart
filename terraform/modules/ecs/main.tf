@@ -72,10 +72,6 @@ locals {
     {
       name  = "DYNAMODB_REGION"
       value = var.aws_region
-    },
-    {
-      name  = "DYNAMODB_TABLE_PREFIX"
-      value = var.dynamodb_table_prefix
     }
   ] : []
 
