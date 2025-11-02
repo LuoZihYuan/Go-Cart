@@ -319,7 +319,7 @@ Go-Cart/
 ├── docs/                          # Swagger generated docs (auto-generated)
 ├── Makefile                       # Build and deployment commands
 ├── Dockerfile                     # Multi-stage Docker build
-├── docker-compose.yaml            # Service orchestration
+├── docker-compose.yml            # Service orchestration
 ├── .air.toml                      # Hot-reload configuration
 └── go.mod                         # Go module definition
 ```
